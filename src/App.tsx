@@ -466,7 +466,7 @@ export default function App() {
           </p>
         </div>
         <div className="max-w-7xl mx-auto pt-8 mt-8 border-t border-[var(--color-border-glass)] flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-[var(--color-text-muted)] uppercase tracking-wider">
-          <p>© {new Date().getFullYear()} Pushker Investment (Wealth Salahkaar). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Pushker Investment (Wealth Salahkaar). All rights reserved. | Made by Eklavya</p>
           <div className="flex gap-6">
             <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
             <span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
