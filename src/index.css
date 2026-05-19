@@ -1,0 +1,50 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@theme {
+  --color-bg-dark: #04070D;
+  --color-surface: #0A0F1B;
+  --color-accent: #C5A059;
+  --color-text-main: #FFFFFF;
+  --color-text-muted: #8E96A3;
+  --color-glass: rgba(255, 255, 255, 0.04);
+  --color-border-glass: rgba(255, 255, 255, 0.08);
+  --font-serif: 'Georgia', serif;
+  --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+:root {
+  --bg: #04070D;
+  --surface: #0A0F1B;
+  --accent: #C5A059;
+  --text-main: #FFFFFF;
+  --text-muted: #8E96A3;
+  --glass: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+}
+
+body {
+  background-color: var(--color-bg-dark) !important;
+  color: var(--color-text-main) !important;
+  font-family: var(--font-sans) !important;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass-panel {
+  background: var(--color-glass);
+  border: 1px solid var(--color-border-glass);
+  backdrop-filter: blur(10px);
+}
+
+.bg-radial-hero {
+  background: radial-gradient(circle at 80% 20%, #101B33 0%, #04070D 60%);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #FFFFFF, #8E96A3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

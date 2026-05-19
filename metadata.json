@@ -1,0 +1,8 @@
+{
+  "name": "Aurelius Wealth",
+  "description": "A sophisticated premium landing page for a financial advisor and wealth strategist.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
