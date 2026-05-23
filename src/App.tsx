@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import React, { useState } from 'react';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar,
   CartesianGrid
@@ -14,6 +15,142 @@ export default function App() {
   const [monthlyInvestment, setMonthlyInvestment] = useState<number>(10000);
   const [returnRate, setReturnRate] = useState<number>(12);
   const [duration, setDuration] = useState<number>(10);
+
+  // Contact and Appointment Form State
+  const [contactTab, setContactTab] = useState<'consultation' | 'appointment'>('consultation');
+  
+  // Consultation Form Fields (Leads)
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+
+  // Appointment Form Fields
+  const [clientName, setClientName] = useState('');
+  const [appointmentEmail, setAppointmentEmail] = useState('');
+  const [appointmentPhone, setAppointmentPhone] = useState('');
+  const [service, setService] = useState('Mutual Funds');
+  const [appointmentDate, setAppointmentDate] = useState('');
+
+  // Status and Submission States
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Submission Handlers
+  const handleConsultationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    const fullName = `${firstName} ${lastName}`.trim();
+    if (!fullName || !phone || !email || !message) {
+      setError("Please fill out all fields.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      setTimeout(() => {
+        setSuccessMessage("Consultation request received! (Demo mode: configure your Supabase environment keys to save permanently)");
+        setIsLoading(false);
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPhone('');
+        setMessage('');
+      }, 1000);
+      return;
+    }
+
+    try {
+      const { error: supabaseError } = await supabase
+        .from('leads')
+        .insert([
+          {
+            name: fullName,
+            phone: phone,
+            email: email,
+            message: message,
+          }
+        ]);
+
+      if (supabaseError) {
+        throw supabaseError;
+      }
+
+      setSuccessMessage("Thank you! Your consultation request has been submitted successfully.");
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPhone('');
+      setMessage('');
+    } catch (err: any) {
+      console.error("Error inserting lead:", err);
+      setError(err?.message || "An error occurred while submitting. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAppointmentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    if (!clientName || !appointmentPhone || !appointmentEmail || !service || !appointmentDate) {
+      setError("Please fill out all fields.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      setTimeout(() => {
+        setSuccessMessage("Appointment booked! (Demo mode: configure your Supabase environment keys to save permanently)");
+        setIsLoading(false);
+        setClientName('');
+        setAppointmentEmail('');
+        setAppointmentPhone('');
+        setService('Mutual Funds');
+        setAppointmentDate('');
+      }, 1000);
+      return;
+    }
+
+    try {
+      const { error: supabaseError } = await supabase
+        .from('appointments')
+        .insert([
+          {
+            client_name: clientName,
+            phone: appointmentPhone,
+            email: appointmentEmail,
+            service: service,
+            appointment_date: appointmentDate,
+          }
+        ]);
+
+      if (supabaseError) {
+        throw supabaseError;
+      }
+
+      setSuccessMessage("Success! Your appointment has been booked. We will check availability and get in touch.");
+      setClientName('');
+      setAppointmentEmail('');
+      setAppointmentPhone('');
+      setService('Mutual Funds');
+      setAppointmentDate('');
+    } catch (err: any) {
+      console.error("Error booking appointment:", err);
+      setError(err?.message || "An error occurred while booking. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   // SIP Calculation Logic
   const p = monthlyInvestment;
@@ -71,7 +208,7 @@ export default function App() {
             <a href="#services" className="hover:text-[var(--color-text-main)] transition-colors">Services</a>
             <a href="#contact" className="hover:text-[var(--color-text-main)] transition-colors">Contact</a>
           </div>
-          <a href="#contact" className="bg-[var(--color-accent)] text-[var(--color-bg-dark)] px-6 py-3 rounded-sm font-bold text-[12px] uppercase tracking-wider hover:bg-white transition-colors">
+          <a href="#contact" onClick={() => setContactTab('appointment')} className="bg-[var(--color-accent)] text-[var(--color-bg-dark)] px-6 py-3 rounded-sm font-bold text-[12px] uppercase tracking-wider hover:bg-white transition-colors">
             Book Appointment
           </a>
         </div>
@@ -94,7 +231,7 @@ export default function App() {
               Honest, transparent, and personalized financial solutions to help you build and protect your wealth by Rajesh Kumar Pushker (Pushker Investment).
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <a href="#contact" className="bg-[var(--color-accent)] text-[var(--color-bg-dark)] px-8 py-4 rounded-sm font-bold text-[12px] uppercase tracking-wider hover:bg-white transition-colors flex items-center justify-center gap-2">
+              <a href="#contact" onClick={() => setContactTab('consultation')} className="bg-[var(--color-accent)] text-[var(--color-bg-dark)] px-8 py-4 rounded-sm font-bold text-[12px] uppercase tracking-wider hover:bg-white transition-colors flex items-center justify-center gap-2">
                 Consult With Us <ArrowUpRight size={16} />
               </a>
               <a href="#services" className="border border-[var(--color-border-glass)] text-[var(--color-text-main)] px-8 py-4 rounded-sm font-bold text-[12px] uppercase tracking-wider hover:bg-[var(--color-glass)] transition-colors flex items-center justify-center">
@@ -398,35 +535,217 @@ export default function App() {
             </div>
           </div>
           
-          <div className="glass-panel p-10 rounded-2xl">
-            <h3 className="font-[var(--font-serif)] text-2xl mb-8">Schedule a Call</h3>
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-              <div className="grid grid-cols-2 gap-6">
-                 <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">First Name</label>
-                    <input type="text" className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" placeholder="John" />
-                 </div>
-                 <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Last Name</label>
-                    <input type="text" className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" placeholder="Doe" />
-                 </div>
-              </div>
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Email Address</label>
-                <input type="email" className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" placeholder="john@example.com" />
-              </div>
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Phone Number</label>
-                <input type="tel" className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" placeholder="+91 98765 43210" />
-              </div>
-              <div>
-                <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Message</label>
-                <textarea className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors h-32" placeholder="How can we help you?"></textarea>
-              </div>
-              <button className="w-full bg-[var(--color-accent)] text-black px-6 py-4 rounded-sm font-bold text-[12px] uppercase tracking-[0.1em] hover:bg-white transition-all">
-                Submit Consultation Request
+          <div className="glass-panel p-10 rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-accent)] to-transparent"></div>
+            
+            <div className="flex border-b border-[var(--color-border-glass)] mb-8">
+              <button 
+                type="button"
+                onClick={() => {
+                  setContactTab('consultation');
+                  setSuccessMessage(null);
+                  setError(null);
+                }}
+                className={`flex-1 pb-4 text-[12px] uppercase tracking-wider font-bold transition-colors relative ${
+                  contactTab === 'consultation' 
+                    ? 'text-[var(--color-accent)]' 
+                    : 'text-[var(--color-text-muted)] hover:text-white'
+                }`}
+              >
+                Schedule Consultation
+                {contactTab === 'consultation' && (
+                  <motion.div 
+                    layoutId="activeTabUnderline" 
+                    className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--color-accent)]" 
+                  />
+                )}
               </button>
-            </form>
+              <button 
+                type="button"
+                onClick={() => {
+                  setContactTab('appointment');
+                  setSuccessMessage(null);
+                  setError(null);
+                }}
+                className={`flex-1 pb-4 text-[12px] uppercase tracking-wider font-bold transition-colors relative ${
+                  contactTab === 'appointment' 
+                    ? 'text-[var(--color-accent)]' 
+                    : 'text-[var(--color-text-muted)] hover:text-white'
+                }`}
+              >
+                Book Appointment
+                {contactTab === 'appointment' && (
+                  <motion.div 
+                    layoutId="activeTabUnderline" 
+                    className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--color-accent)]" 
+                  />
+                )}
+              </button>
+            </div>
+
+            {/* Success and Error messages */}
+            <AnimatePresence mode="wait">
+              {successMessage && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-4 rounded mb-6 text-xs font-semibold tracking-wide uppercase"
+                >
+                  {successMessage}
+                </motion.div>
+              )}
+              {error && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="bg-rose-500/10 border border-rose-500/30 text-rose-400 p-4 rounded mb-6 text-xs font-semibold tracking-wide uppercase"
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {contactTab === 'consultation' ? (
+              /* Leads Form */
+              <form className="space-y-6" onSubmit={handleConsultationSubmit}>
+                <div className="grid grid-cols-2 gap-6">
+                   <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">First Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                        placeholder="John" 
+                      />
+                   </div>
+                   <div>
+                      <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Last Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                        placeholder="Doe" 
+                      />
+                   </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Email Address</label>
+                  <input 
+                    type="email" 
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                    placeholder="john@example.com" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                    placeholder="+91 98765 43210" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Message</label>
+                  <textarea 
+                    required
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors h-32" 
+                    placeholder="How can we help you?"
+                  ></textarea>
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full bg-[var(--color-accent)] text-black px-6 py-4 rounded-sm font-bold text-[12px] uppercase tracking-[0.1em] hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Submitting Request..." : "Submit Consultation Request"}
+                </button>
+              </form>
+            ) : (
+              /* Appointments booking form */
+              <form className="space-y-6" onSubmit={handleAppointmentSubmit}>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Full Name</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                    placeholder="John Doe" 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Email Address</label>
+                    <input 
+                      type="email" 
+                      required
+                      value={appointmentEmail}
+                      onChange={(e) => setAppointmentEmail(e.target.value)}
+                      className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                      placeholder="john@example.com" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Phone Number</label>
+                    <input 
+                      type="tel" 
+                      required
+                      value={appointmentPhone}
+                      onChange={(e) => setAppointmentPhone(e.target.value)}
+                      className="w-full bg-black/20 border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors" 
+                      placeholder="+91 98765 43210" 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Preferred Financial Service</label>
+                  <select 
+                    value={service}
+                    onChange={(e) => setService(e.target.value)}
+                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border-glass)] rounded p-3 text-white focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer"
+                  >
+                    <option value="Mutual Funds">Mutual Fund Investment & SIPs</option>
+                    <option value="Demat & Share Market">Demat Account & Share Market Advisory</option>
+                    <option value="Bonds & Fixed Income">Bonds, Debentures, NCD, MLD, FDs</option>
+                    <option value="Insurance Planning">Life & Health Insurance Planning</option>
+                    <option value="Portfolio Management">Financial Portfolio & Goal-Based Planning</option>
+                    <option value="Tax Saving Strategies">Tax Saving Investment Solutions</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Appointment Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={appointmentDate}
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] text-white p-3 rounded focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer" 
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full bg-[var(--color-accent)] text-black px-6 py-4 rounded-sm font-bold text-[12px] uppercase tracking-[0.1em] hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Booking..." : "Book Appointment"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>
