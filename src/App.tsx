@@ -32,6 +32,7 @@ export default function App() {
   const [appointmentPhone, setAppointmentPhone] = useState('');
   const [service, setService] = useState('Mutual Funds');
   const [appointmentDate, setAppointmentDate] = useState('');
+  const [appointmentTime, setAppointmentTime] = useState('');
 
   // Status and Submission States
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +102,7 @@ export default function App() {
     setError(null);
     setSuccessMessage(null);
 
-    if (!clientName || !appointmentPhone || !appointmentEmail || !service || !appointmentDate) {
+    if (!clientName || !appointmentPhone || !appointmentEmail || !service || !appointmentDate || !appointmentTime) {
       setError("Please fill out all fields.");
       setIsLoading(false);
       return;
@@ -116,11 +117,13 @@ export default function App() {
         setAppointmentPhone('');
         setService('Mutual Funds');
         setAppointmentDate('');
+        setAppointmentTime('');
       }, 1000);
       return;
     }
 
     try {
+      const joinedDateTime = `${appointmentDate} ${appointmentTime}`;
       const { error: supabaseError } = await supabase
         .from('appointments')
         .insert([
@@ -129,7 +132,7 @@ export default function App() {
             phone: appointmentPhone,
             email: appointmentEmail,
             service: service,
-            appointment_date: appointmentDate,
+            appointment_date: joinedDateTime,
           }
         ]);
 
@@ -143,6 +146,7 @@ export default function App() {
       setAppointmentPhone('');
       setService('Mutual Funds');
       setAppointmentDate('');
+      setAppointmentTime('');
     } catch (err: any) {
       console.error("Error booking appointment:", err);
       setError(err?.message || "An error occurred while booking. Please try again.");
@@ -732,9 +736,22 @@ export default function App() {
                   <input 
                     type="date" 
                     required
+                    min={new Date().toISOString().split('T')[0]}
                     value={appointmentDate}
                     onChange={(e) => setAppointmentDate(e.target.value)}
-                    className="w-full bg-black/20 border border-[var(--color-border-glass)] text-white p-3 rounded focus:outline-none focus:border-[var(--color-accent)] transition-colors cursor-pointer" 
+                    style={{ colorScheme: 'dark' }}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] text-white p-3 rounded focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] transition-all cursor-pointer font-sans text-sm" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Preferred Time</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={appointmentTime}
+                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    style={{ colorScheme: 'dark' }}
+                    className="w-full bg-black/20 border border-[var(--color-border-glass)] text-white p-3 rounded focus:outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] transition-all cursor-pointer font-sans text-sm" 
                   />
                 </div>
                 <button 
