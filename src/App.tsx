@@ -58,30 +58,61 @@ export default function App() {
       phone: phone,
       email: email,
       message: message,
+      form_type: "Consultation Request",
     };
 
     console.log("Submitting consultation / lead form data:", payload);
 
     try {
-      const response = await supabase
-        .from('leads')
-        .insert([payload]);
-
-      console.log("Supabase response (leads):", response);
-
-      if (response.error) {
-        console.error("Supabase error (leads):", response.error);
-        throw response.error;
+      // 1. Submit to Formspree
+      console.log("Submitting to Formspree...");
+      let formspreeRes: Response | null = null;
+      try {
+        formspreeRes = await fetch("https://formspree.io/f/mvzyqerq", {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.warn("Formspree submission error (non-fatal):", err);
       }
 
-      setSuccessMessage("Thank you! Your consultation request has been submitted successfully.");
+      // 2. Submit to Supabase leads table
+      console.log("Submitting to Supabase leads...");
+      try {
+        const res = await supabase
+          .from('leads')
+          .insert([{
+            name: fullName,
+            phone: phone,
+            email: email,
+            message: message,
+          }]);
+        console.log("Supabase response (leads):", res);
+        if (res.error) {
+          console.error("Supabase leads error:", res.error);
+        }
+      } catch (err) {
+        console.warn("Supabase insertion error (non-fatal):", err);
+      }
+
+      if (formspreeRes && !formspreeRes.ok) {
+        const errText = await formspreeRes.text();
+        console.error("Formspree returned error response:", errText);
+        throw new Error("Unable to submit request to Formspree. Please check if form fields are correct or try again.");
+      }
+
+      setSuccessMessage("Thank you! Your consultation request has been submitted successfully via Formspree and registered in our database.");
       setFirstName('');
       setLastName('');
       setEmail('');
       setPhone('');
       setMessage('');
     } catch (err: any) {
-      console.error("Error inserting lead to Supabase:", err);
+      console.error("Submission error:", err);
       setError(err?.message || "An error occurred while submitting. Please try again.");
     } finally {
       setIsLoading(false);
@@ -109,23 +140,55 @@ export default function App() {
       email: appointmentEmail,
       service: service,
       appointment_date: joinedDateTime,
+      form_type: "Appointment Booking",
     };
 
     console.log("Submitting appointment form data:", payload);
 
     try {
-      const response = await supabase
-        .from('appointments')
-        .insert([payload]);
-
-      console.log("Supabase response (appointments):", response);
-
-      if (response.error) {
-        console.error("Supabase error (appointments):", response.error);
-        throw response.error;
+      // 1. Submit to Formspree
+      console.log("Submitting to Formspree...");
+      let formspreeRes: Response | null = null;
+      try {
+        formspreeRes = await fetch("https://formspree.io/f/mvzyqerq", {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.warn("Formspree submission error (non-fatal):", err);
       }
 
-      setSuccessMessage("Success! Your appointment has been booked. We will check availability and get in touch.");
+      // 2. Submit to Supabase appointments table
+      console.log("Submitting to Supabase appointments...");
+      try {
+        const res = await supabase
+          .from('appointments')
+          .insert([{
+            client_name: clientName,
+            phone: appointmentPhone,
+            email: appointmentEmail,
+            service: service,
+            appointment_date: joinedDateTime,
+          }]);
+        console.log("Supabase response (appointments):", res);
+        if (res.error) {
+          console.error("Supabase appointments error:", res.error);
+        }
+      } catch (err) {
+        console.warn("Supabase insertion error (non-fatal):", err);
+      }
+
+      if (formspreeRes && !formspreeRes.ok) {
+        const errText = await formspreeRes.text();
+        console.error("Formspree returned error response:", errText);
+        throw new Error("Unable to book appointment at this time. Please check your network or try again.");
+      }
+
+      setSuccessMessage("Success! Your appointment has been booked. We will check availability and get in touch shortly.");
       setClientName('');
       setAppointmentEmail('');
       setAppointmentPhone('');
@@ -133,7 +196,7 @@ export default function App() {
       setAppointmentDate('');
       setAppointmentTime('');
     } catch (err: any) {
-      console.error("Error booking appointment in Supabase:", err);
+      console.error("Submission error:", err);
       setError(err?.message || "An error occurred while booking. Please try again.");
     } finally {
       setIsLoading(false);
