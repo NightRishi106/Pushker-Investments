@@ -53,33 +53,25 @@ export default function App() {
       return;
     }
 
-    if (!isSupabaseConfigured) {
-      setTimeout(() => {
-        setSuccessMessage("Consultation request received! (Demo mode: configure your Supabase environment keys to save permanently)");
-        setIsLoading(false);
-        setFirstName('');
-        setLastName('');
-        setEmail('');
-        setPhone('');
-        setMessage('');
-      }, 1000);
-      return;
-    }
+    const payload = {
+      name: fullName,
+      phone: phone,
+      email: email,
+      message: message,
+    };
+
+    console.log("Submitting consultation / lead form data:", payload);
 
     try {
-      const { error: supabaseError } = await supabase
+      const response = await supabase
         .from('leads')
-        .insert([
-          {
-            name: fullName,
-            phone: phone,
-            email: email,
-            message: message,
-          }
-        ]);
+        .insert([payload]);
 
-      if (supabaseError) {
-        throw supabaseError;
+      console.log("Supabase response (leads):", response);
+
+      if (response.error) {
+        console.error("Supabase error (leads):", response.error);
+        throw response.error;
       }
 
       setSuccessMessage("Thank you! Your consultation request has been submitted successfully.");
@@ -89,7 +81,7 @@ export default function App() {
       setPhone('');
       setMessage('');
     } catch (err: any) {
-      console.error("Error inserting lead:", err);
+      console.error("Error inserting lead to Supabase:", err);
       setError(err?.message || "An error occurred while submitting. Please try again.");
     } finally {
       setIsLoading(false);
@@ -108,36 +100,29 @@ export default function App() {
       return;
     }
 
-    if (!isSupabaseConfigured) {
-      setTimeout(() => {
-        setSuccessMessage("Appointment booked! (Demo mode: configure your Supabase environment keys to save permanently)");
-        setIsLoading(false);
-        setClientName('');
-        setAppointmentEmail('');
-        setAppointmentPhone('');
-        setService('Mutual Funds');
-        setAppointmentDate('');
-        setAppointmentTime('');
-      }, 1000);
-      return;
-    }
+    // Combine date and time to compatible ISO format (e.g., YYYY-MM-DDTHH:MM:00)
+    const joinedDateTime = `${appointmentDate}T${appointmentTime}:00`;
+
+    const payload = {
+      client_name: clientName,
+      phone: appointmentPhone,
+      email: appointmentEmail,
+      service: service,
+      appointment_date: joinedDateTime,
+    };
+
+    console.log("Submitting appointment form data:", payload);
 
     try {
-      const joinedDateTime = `${appointmentDate} ${appointmentTime}`;
-      const { error: supabaseError } = await supabase
+      const response = await supabase
         .from('appointments')
-        .insert([
-          {
-            client_name: clientName,
-            phone: appointmentPhone,
-            email: appointmentEmail,
-            service: service,
-            appointment_date: joinedDateTime,
-          }
-        ]);
+        .insert([payload]);
 
-      if (supabaseError) {
-        throw supabaseError;
+      console.log("Supabase response (appointments):", response);
+
+      if (response.error) {
+        console.error("Supabase error (appointments):", response.error);
+        throw response.error;
       }
 
       setSuccessMessage("Success! Your appointment has been booked. We will check availability and get in touch.");
@@ -148,7 +133,7 @@ export default function App() {
       setAppointmentDate('');
       setAppointmentTime('');
     } catch (err: any) {
-      console.error("Error booking appointment:", err);
+      console.error("Error booking appointment in Supabase:", err);
       setError(err?.message || "An error occurred while booking. Please try again.");
     } finally {
       setIsLoading(false);
