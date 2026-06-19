@@ -105,7 +105,7 @@ export default function App() {
         throw new Error("Unable to submit request to Formspree. Please check if form fields are correct or try again.");
       }
 
-      const advisorPhoneNumber = '918448506346';
+      const advisorPhoneNumber = '917275108546';
       const whatsappMessage = `Hi, I would like to schedule a consultation.\n\n*Name:* ${fullName}\n*Phone:* ${phone}\n*Email:* ${email}\n*Message:* ${message}`;
       const whatsappUrl = `https://wa.me/${advisorPhoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
@@ -194,7 +194,7 @@ export default function App() {
         throw new Error("Unable to book appointment at this time. Please check your network or try again.");
       }
 
-      const advisorPhoneNumber = '918448506346';
+      const advisorPhoneNumber = '917275108546';
       const whatsappMessage = `Hi, I would like to book an appointment.\n\n*Name:* ${clientName}\n*Phone:* ${appointmentPhone}\n*Email:* ${appointmentEmail}\n*Service:* ${service}\n*Date:* ${appointmentDate}\n*Time:* ${appointmentTime}`;
       const whatsappUrl = `https://wa.me/${advisorPhoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
