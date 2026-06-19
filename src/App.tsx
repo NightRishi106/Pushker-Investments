@@ -105,7 +105,13 @@ export default function App() {
         throw new Error("Unable to submit request to Formspree. Please check if form fields are correct or try again.");
       }
 
-      setSuccessMessage("Thank you! Your consultation request has been submitted successfully via Formspree and registered in our database.");
+      const advisorPhoneNumber = '917275108546';
+      const whatsappMessage = `Hi, I would like to schedule a consultation.\n\n*Name:* ${fullName}\n*Phone:* ${phone}\n*Email:* ${email}\n*Message:* ${message}`;
+      const whatsappUrl = `https://wa.me/${advisorPhoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+      setSuccessMessage("Thank you! Your consultation request has been submitted. Opening WhatsApp...");
+      window.open(whatsappUrl, '_blank');
+
       setFirstName('');
       setLastName('');
       setEmail('');
@@ -188,7 +194,13 @@ export default function App() {
         throw new Error("Unable to book appointment at this time. Please check your network or try again.");
       }
 
-      setSuccessMessage("Success! Your appointment has been booked. We will check availability and get in touch shortly.");
+      const advisorPhoneNumber = '917275108546';
+      const whatsappMessage = `Hi, I would like to book an appointment.\n\n*Name:* ${clientName}\n*Phone:* ${appointmentPhone}\n*Email:* ${appointmentEmail}\n*Service:* ${service}\n*Date:* ${appointmentDate}\n*Time:* ${appointmentTime}`;
+      const whatsappUrl = `https://wa.me/${advisorPhoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+      setSuccessMessage("Success! Your appointment has been booked. Opening WhatsApp...");
+      window.open(whatsappUrl, '_blank');
+
       setClientName('');
       setAppointmentEmail('');
       setAppointmentPhone('');
